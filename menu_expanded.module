@@ -1,4 +1,6 @@
 <?php
+//$Id$
+
 /**
  * @file restore "expanded" checboxes on menu item lists
  */
