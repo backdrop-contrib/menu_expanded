@@ -1,4 +1,3 @@
-;$Id$
 name = Menu Expanded
 description = <a href="">Menu Expanded</a> restores the expanded checkboxes on the menu link list pages, enabling you to quickly set a menu item to expanded without entering the edit link for each menu item. 
 package = Administration
