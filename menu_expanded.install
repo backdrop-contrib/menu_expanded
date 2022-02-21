@@ -1,0 +1,17 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the Menu Expanded module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function menu_expanded_install() {
+  // Menu Expanded needs to load after Node and Menu modules
+  db_update('system')
+    ->fields(array('weight' => 5))
+    ->condition('type', 'module')
+    ->condition('name', 'menu_expanded')
+    ->execute();
+}
