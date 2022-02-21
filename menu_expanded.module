@@ -1,15 +1,15 @@
 <?php
 
 /**
- * @file restore "expanded" checboxes on menu item lists
+j* @file restore "expanded" checkboxes on menu item lists
  *
  * This duplicates code from Backdrop core menu module.
- * @see: https://github.com/backdrop/backdrop/pull/3658
+ * @see: https://github.com/backdrop/backdrop-issues/issues/2782
  */
 
 /**
  * Implements hook_theme().
- * add in custom theme function for menu overview form
+ * Add custom theme function for menu overview form
  */
 function menu_expanded_theme($existing, $type, $theme, $path) {
   return array(
@@ -22,6 +22,7 @@ function menu_expanded_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_form_FORM_ID_alter().
  * Add expanded checkbox on menu section of node_form
+ * Change from #type=value to #type=checkbox
  */
 function menu_expanded_form_node_form_alter(&$form, &$form_state, $form_id) {
 
@@ -37,7 +38,7 @@ function menu_expanded_form_node_form_alter(&$form, &$form_state, $form_id) {
 
 /**
  * Implements hook_form_FORM_ID_alter().
- * Add in expanded checkbox on menu_overview_form
+ * Add expanded checkbox on menu_overview_form
  */
 function menu_expanded_form_menu_overview_form_alter(&$form, &$form_state, $form_id) {
   $menu_items = element_children($form);
