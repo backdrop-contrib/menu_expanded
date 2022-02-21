@@ -1,4 +1,7 @@
-type = module
 name = Menu Expanded
-description = Show the expanded checkbox on the node edit and menu link list pages
+description = Show the expanded checkbox on the node edit and menu link list pages.
+package = Administration
+type = module
 backdrop = 1.x
+dependencies[] = menu
+version = 1.x-1.x

@@ -8,7 +8,7 @@
  */
 
 /**
- * Implementation of hook_theme
+ * Implements hook_theme().
  * add in custom theme function for menu overview form
  */
 function menu_expanded_theme($existing, $type, $theme, $path) {
@@ -20,7 +20,7 @@ function menu_expanded_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implementation of hook_form_FORM_ID_alter()
+ * Implements hook_form_FORM_ID_alter().
  * Add expanded checkbox on menu section of node_form
  */
 function menu_expanded_form_node_form_alter(&$form, &$form_state, $form_id) {
@@ -30,19 +30,19 @@ function menu_expanded_form_node_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'checkbox',
       '#title' => t('Show as expanded'),
       '#default_value' => $form['menu']['link']['expanded']['#value'],
-      '#description' => t('If selected and this menu link has children, the menu will always appear expanded.')
+      '#description' => t('If selected and this menu link has children, the menu will always appear expanded.'),
     );
   }
 }
 
 /**
- * Implementation of hook_form_FORM_ID_alter()
+ * Implements hook_form_FORM_ID_alter().
  * Add in expanded checkbox on menu_overview_form
  */
 function menu_expanded_form_menu_overview_form_alter(&$form, &$form_state, $form_id) {
   $menu_items = element_children($form);
-  foreach($menu_items AS $mlid) {
-    if(substr($mlid, 0, 4) == 'mlid') {
+  foreach ($menu_items as $mlid) {
+    if (substr($mlid, 0, 4) == 'mlid') {
       $item = $form[$mlid]['#item'];
       $form[$mlid]['expanded'] = array(
         '#type' => 'checkbox',
@@ -130,8 +130,15 @@ function theme_menu_expanded_menu_overview_form($variables) {
   if (module_exists('language')) {
     $header[] = t('Language');
   }
-  $header[] = array('data' => t('Expanded'), 'title' => t('Show menu item as expanded in Hierarchical Tree menu style'), 'class' => array('checkbox'));
-  $header[] = array('data' => t('Enabled'), 'class' => array('checkbox'));
+  $header[] = array(
+    'data' => t('Expanded'),
+    'title' => t('Show menu item as expanded in Hierarchical Tree menu style'),
+    'class' => array('checkbox'),
+  );
+  $header[] = array(
+    'data' => t('Enabled'),
+    'class' => array('checkbox'),
+  );
   $header[] = t('Weight');
   $header[] = t('Operations');
 
@@ -153,8 +160,15 @@ function theme_menu_expanded_menu_overview_form($variables) {
       if (module_exists('language')) {
         $row[] = backdrop_render($element['langcode']);
       }
-      $row[] = array('data' => backdrop_render($element['expanded']), 'title' => $element['expanded']['#title'],'class' => array('checkbox', 'menu-enabled'));
-      $row[] = array('data' => backdrop_render($element['hidden']), 'class' => array('checkbox', 'menu-enabled'));
+      $row[] = array(
+        'data' => backdrop_render($element['expanded']),
+        'title' => $element['expanded']['#title'],
+        'class' => array('checkbox', 'menu-enabled'),
+      );
+      $row[] = array(
+        'data' => backdrop_render($element['hidden']),
+        'class' => array('checkbox', 'menu-enabled'),
+      );
       $row[] = backdrop_render($element['weight']) . backdrop_render($element['plid']) . backdrop_render($element['mlid']);
       $row[] = backdrop_render($element['operations']);
 
