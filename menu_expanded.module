@@ -21,6 +21,22 @@ function menu_expanded_theme($existing, $type, $theme, $path) {
 
 /**
  * Implementation of hook_form_FORM_ID_alter()
+ * Add expanded checkbox on menu section of node_form
+ */
+function menu_expanded_form_node_form_alter(&$form, &$form_state, $form_id) {
+
+  if (isset($form['menu']['link']['expanded']['#type']) && $form['menu']['link']['expanded']['#type'] === "value") {
+    $form['menu']['link']['expanded'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show as expanded'),
+      '#default_value' => $form['menu']['link']['expanded']['#value'],
+      '#description' => t('If selected and this menu link has children, the menu will always appear expanded.')
+    );
+  }
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
  * Add in expanded checkbox on menu_overview_form
  */
 function menu_expanded_form_menu_overview_form_alter(&$form, &$form_state, $form_id) {
