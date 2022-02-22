@@ -2,6 +2,9 @@
 
 /**
  * @file restore "expanded" checboxes on menu item lists
+ *
+ * This duplicates code from Backdrop core menu module.
+ * @see: https://github.com/backdrop/backdrop/pull/3658
  */
 
 /**
@@ -24,21 +27,20 @@ function menu_expanded_form_menu_overview_form_alter(&$form, &$form_state, $form
   $menu_items = element_children($form);
   foreach($menu_items AS $mlid) {
     if(substr($mlid, 0, 4) == 'mlid') {
-      $menu_item = $form[$mlid]['#item'];
+      $item = $form[$mlid]['#item'];
       $form[$mlid]['expanded'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Set @title to expanded', array('@title' => $menu_item['title'])),
+        '#title' => t('Expand @title menu link', array('@title' => $item['title'])),
         '#title_display' => 'invisible',
-        '#default_value' => $menu_item['expanded'],
+        '#default_value' => $item['expanded'],
         '#weight' => 1,
       );
     }
   }
   // alter the theme and submit functions to handle our use case.
   $form['#theme'][0] = 'menu_expanded_menu_overview_form';
-  $form['#submit'][0] = 'menu_expanded_overview_form_submit';
+  $form['#submit'][0] = 'menu_expanded_menu_overview_form_submit';
 }
-
 
 /**
  * Submit handler for the menu overview form.
@@ -48,7 +50,7 @@ function menu_expanded_form_menu_overview_form_alter(&$form, &$form_state, $form
  *
  * @see menu_overview_form()
  */
-function menu_expanded_overview_form_submit($form, &$form_state) {
+function menu_expanded_menu_overview_form_submit($form, &$form_state) {
   // When dealing with saving menu items, the order in which these items are
   // saved is critical. If a changed child item is saved before its parent,
   // the child item could be saved with an invalid path past its immediate
@@ -56,7 +58,7 @@ function menu_expanded_overview_form_submit($form, &$form_state) {
   // are sent by $_POST, ensuring parents are saved first, then their children.
   // See http://drupal.org/node/181126#comment-632270
   $order = array_flip(array_keys($form_state['input'])); // Get the $_POST order.
-  $form = array_merge($order, $form); // Update our original form with the new order.
+  $form = array_intersect_key(array_merge($order, $form), $form); // Update our original form with the new order.
 
   $updated_items = array();
   $fields = array('weight', 'expanded', 'plid');
@@ -78,14 +80,14 @@ function menu_expanded_overview_form_submit($form, &$form_state) {
       }
     }
   }
+
   // Save all our changed items to the database.
   foreach ($updated_items as $item) {
     $item['customized'] = 1;
     menu_link_save($item);
   }
-  drupal_set_message(t('Your configuration has been saved.'));
+  backdrop_set_message(t('Your configuration has been saved.'));
 }
-
 
 /**
  * Returns HTML for the menu overview form into a table.
@@ -98,30 +100,29 @@ function menu_expanded_overview_form_submit($form, &$form_state) {
  */
 function theme_menu_expanded_menu_overview_form($variables) {
   $form = $variables['form'];
-  //dsm('menu_expanded_menu_overview_form called...');
-  drupal_add_tabledrag('menu-overview', 'match', 'parent', 'menu-plid', 'menu-plid', 'menu-mlid', TRUE, MENU_MAX_DEPTH - 1);
-  drupal_add_tabledrag('menu-overview', 'order', 'sibling', 'menu-weight');
 
-  $header = array(
-    t('Menu link'),
-    array('data' => t('Expanded'), 'class' => array('checkbox')),
-    array('data' => t('Enabled'), 'class' => array('checkbox')),
-    t('Weight'),
-    array('data' => t('Operations'), 'colspan' => '3'),
-  );
+  $output = '';
+
+  $form['langcode']['#field_suffix'] = backdrop_render($form['langcode_filter']);
+  $output .= backdrop_render($form['langcode']);
+
+  backdrop_add_tabledrag('menu-overview', 'match', 'parent', 'menu-plid', 'menu-plid', 'menu-mlid', TRUE, MENU_MAX_DEPTH - 1);
+  backdrop_add_tabledrag('menu-overview', 'order', 'sibling', 'menu-weight');
+
+  $header = array();
+  $header[] = t('Menu link');
+  if (module_exists('language')) {
+    $header[] = t('Language');
+  }
+  $header[] = array('data' => t('Expanded'), 'title' => t('Show menu item as expanded in Hierarchical Tree menu style'), 'class' => array('checkbox'));
+  $header[] = array('data' => t('Enabled'), 'class' => array('checkbox'));
+  $header[] = t('Weight');
+  $header[] = t('Operations');
 
   $rows = array();
   foreach (element_children($form) as $mlid) {
     if (isset($form[$mlid]['hidden'])) {
       $element = &$form[$mlid];
-      // Build a list of operations.
-      $operations = array();
-      foreach (element_children($element['operations']) as $op) {
-        $operations[] = array('data' => drupal_render($element['operations'][$op]), 'class' => array('menu-operations'));
-      }
-      while (count($operations) < 2) {
-        $operations[] = '';
-      }
 
       // Add special classes to be used for tabledrag.js.
       $element['plid']['#attributes']['class'] = array('menu-plid');
@@ -132,22 +133,34 @@ function theme_menu_expanded_menu_overview_form($variables) {
       $element['plid']['#type'] = 'hidden';
 
       $row = array();
-      $row[] = theme('indentation', array('size' => $element['#item']['depth'] - 1)) . drupal_render($element['title']);
-      $row[] = array('data' => drupal_render($element['expanded']), 'class' => array('checkbox', 'menu-enabled'));
-      $row[] = array('data' => drupal_render($element['hidden']), 'class' => array('checkbox', 'menu-enabled'));
-      $row[] = drupal_render($element['weight']) . drupal_render($element['plid']) . drupal_render($element['mlid']);
-      $row = array_merge($row, $operations);
+      $row[] = theme('indentation', array('size' => $element['#item']['depth'] - 1)) . backdrop_render($element['title']);
+      if (module_exists('language')) {
+        $row[] = backdrop_render($element['langcode']);
+      }
+      $row[] = array('data' => backdrop_render($element['expanded']), 'title' => $element['expanded']['#title'],'class' => array('checkbox', 'menu-enabled'));
+      $row[] = array('data' => backdrop_render($element['hidden']), 'class' => array('checkbox', 'menu-enabled'));
+      $row[] = backdrop_render($element['weight']) . backdrop_render($element['plid']) . backdrop_render($element['mlid']);
+      $row[] = backdrop_render($element['operations']);
 
       $row = array_merge(array('data' => $row), $element['#attributes']);
       $row['class'][] = 'draggable';
       $rows[] = $row;
     }
   }
-  $output = '';
+
   if (empty($rows)) {
-    $rows[] = array(array('data' => $form['#empty_text'], 'colspan' => '8'));
+    $rows[] = array(
+      array(
+        'data' => $form['#empty_text'],
+        'colspan' => count($header),
+      ),
+    );
   }
-  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'menu-overview')));
-  $output .= drupal_render_children($form);
+  $output .= theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => 'menu-overview'),
+  ));
+  $output .= backdrop_render_children($form);
   return $output;
 }

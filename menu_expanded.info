@@ -1,6 +1,4 @@
+type = module
 name = Menu Expanded
-description = <a href="">Menu Expanded</a> restores the expanded checkboxes on the menu link list pages, enabling you to quickly set a menu item to expanded without entering the edit link for each menu item. 
-package = Administration
-core = 7.x
-
-files[] = menu_expanded.module
+description = Show the expanded checkbox on the node edit and menu link list pages
+backdrop = 1.x
